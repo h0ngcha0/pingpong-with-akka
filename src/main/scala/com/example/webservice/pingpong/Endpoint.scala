@@ -21,18 +21,30 @@ class Endpoint()(
   implicit val materializer: Materializer,
   implicit val config: Config
 ) extends Protocols {
-  implicit val timeout = Timeout(5 seconds)
+  implicit val timeout = Timeout(5.seconds)
 
   val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
+  val supervisedPingPong = system.actorOf(SupervisedPingPong.props, "SupervisedPingPong")
+
+  val basicPingRoute = path("basic" / "ping") {
+    (post & entity(as[Ping])) {
+      case msg @ Ping(color) => complete { (basicPingPong ? msg).mapTo[Pong]  }
+      case _ => complete(StatusCodes.BadRequest)
+    }
+  }
+
+  val supervisedRestartRoute = path("supervised" / "restart" / "ping") {
+    (post & entity(as[Ping])) {
+      case msg @ Ping(color) => complete { (supervisedPingPong ? msg).mapTo[Pong]  }
+      case _ => complete(StatusCodes.BadRequest)
+    }
+  }
+
 
   def routes = {
-     path("basic" / "ping") {
-      (post & entity(as[Ping])) {
-        case msg @ Ping(color) => {
-          complete { (basicPingPong ? msg).mapTo[Pong]  }
-        }
-        case _ => complete(StatusCodes.BadRequest)
-      }
+    logRequestResult("pingpong-with-akka") {
+      basicPingRoute ~
+      supervisedRestartRoute
     }
   }
 }

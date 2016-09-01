@@ -2,8 +2,7 @@ package com.example.webservice
 
 import akka.http.scaladsl.Http
 
-object Boot extends App
-    with HttpService {
+object Boot extends App with HttpService {
   val port = config.getInt("http.port")
   val interface = config.getString("http.interface")
 

@@ -6,10 +6,16 @@ import akka.event.Logging
 
 class BasicPingPong extends Actor with Protocols {
   val log = Logging(context.system, this)
+  val validColors = List("red", "blue", "green")
 
-  def receive = {
-    case Ping(color) => sender ! Pong(color)
-    case msg @ _     => log.info("recieved unknown message {}", msg)
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    log.info("basic pingpong is restarted.")
+  }
+
+  def receive: Receive = {
+    case Ping(color) if validColors contains color => sender ! Pong(color)
+    case Ping(color) => throw new Exception(s"can not handle $color color")
+    case msg @ _     => throw new Exception(s"recieved unknown message $msg")
   }
 }
 
