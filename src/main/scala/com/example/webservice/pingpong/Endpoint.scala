@@ -31,7 +31,7 @@ class Endpoint()(
     }
   }
 
-  val supervisedRestartRoute = path("supervised" / "restart" / "ping") {
+  val supervisedRestartRoute = path("supervised" / "ping") {
     (post & entity(as[Payload])) {
       case msg : Ball => complete { (supervisedPingPong ? msg).mapTo[Payload] }
       case _ => complete(StatusCodes.BadRequest)

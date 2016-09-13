@@ -28,5 +28,5 @@ under the project root directory
 # Example
 
 ``` bash
-curl -XPOST -H"Content-Type: application/json" -d'{"color": "red"}' localhost:9000/basic/ping
+curl -XPOST -H"Content-Type: application/json" -d'{"pingpongball": 0}' localhost:9000/basic/ping
 ```
