@@ -1,19 +1,17 @@
 package com.example.webservice.pingpong
 
-import akka.actor.ActorSystem
-import akka.actor.Props
-import akka.util.Timeout
-import akka.pattern.ask
+import scala.concurrent._
+import scala.concurrent.duration._
+
+import akka.actor.{Props, ActorSystem}
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
+import akka.pattern.ask
 import akka.stream.Materializer
+import akka.util.Timeout
 import com.typesafe.config.Config
-import scala.concurrent._
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContextExecutor, Future}
-
 
 class Endpoint()(
   implicit val system: ActorSystem,
@@ -27,15 +25,15 @@ class Endpoint()(
   val supervisedPingPong = system.actorOf(SupervisedPingPong.props, "SupervisedPingPong")
 
   val basicPingRoute = path("basic" / "ping") {
-    (post & entity(as[Ping])) {
-      case msg @ Ping(color) => complete { (basicPingPong ? msg).mapTo[Pong]  }
+    (post & entity(as[Payload])) {
+      case msg : Ball => complete { (basicPingPong ? msg).mapTo[Payload] }
       case _ => complete(StatusCodes.BadRequest)
     }
   }
 
   val supervisedRestartRoute = path("supervised" / "restart" / "ping") {
-    (post & entity(as[Ping])) {
-      case msg @ Ping(color) => complete { (supervisedPingPong ? msg).mapTo[Pong]  }
+    (post & entity(as[Payload])) {
+      case msg : Ball => complete { (supervisedPingPong ? msg).mapTo[Payload] }
       case _ => complete(StatusCodes.BadRequest)
     }
   }

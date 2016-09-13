@@ -1,16 +1,17 @@
 package com.example.webservice.pingpong
 
-import akka.actor.Actor
-import akka.actor.Props
-import akka.actor.OneForOneStrategy
+import akka.actor.{Props, OneForOneStrategy, Actor}
 import akka.actor.SupervisorStrategy._
 import akka.event.Logging
 
-class SupervisedPingPong extends Actor with Protocols {
+class SupervisedPingPong extends Actor {
   val log = Logging(context.system, this)
 
+  // a few strategies
   override val supervisorStrategy = OneForOneStrategy() {
-    case _: Any => Restart
+    case _: Killed  => Stop
+    case _: Faint   => Resume
+    case _: Injured => Restart
   }
 
   val basicPingPong = context.actorOf(BasicPingPong.props, "BasicPingPong")
