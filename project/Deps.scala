@@ -10,6 +10,9 @@ object Deps {
     "com.typesafe.akka"          %% "akka-http-core"                       % akkaV,
     "com.typesafe.akka"          %% "akka-http-experimental"               % akkaV,
     "com.typesafe.akka"          %% "akka-http-spray-json-experimental"    % akkaV,
+    "com.typesafe.akka"          %% "akka-cluster"                         % akkaV,
+    "com.typesafe.akka"          %% "akka-cluster-tools"                   % akkaV,
+    "com.typesafe.akka"          %% "akka-persistence"                     % akkaV,
     "com.typesafe.akka"          %% "akka-http-testkit"                    % akkaV
   )
 

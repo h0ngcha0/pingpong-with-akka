@@ -6,17 +6,18 @@ import akka.event.Logging
 
 class BasicPingPong extends Actor {
   val log = Logging(context.system, this)
-  val validColors = List("red", "blue", "green")
 
+  var ballsSeen = 0
   override def preRestart(reason: Throwable, message: Option[Any]) = {
-    log.info("basic pingpong is restarted.")
+    log.info(s"basic pingpong is restarted because of $reason")
   }
 
   def receive: Receive = {
-    case PingPongball(hops) => { sender ! PingPongball(hops+1)}
-    case Basketball(hops)   => { sender ! Status("Ball too big, I am fainted."); throw new Faint()}
-    case Fireball(hops)     => { sender ! Status("Got fire, I am seriously injured."); throw new Injured()}
-    case Mustketball(hops)  => { sender ! Status("Shot, I am dead.. :("); throw new Killed()}
+    case PingPongball(hops) => { ballsSeen += 1; sender ! PingPongball(hops+1)}
+    case Basketball(hops)   => { ballsSeen += 1; sender ! Status("What a big ball, I am fainted..."); throw new Faint()}
+    case Fireball(hops)     => { ballsSeen += 1; sender ! Status("Got fire, I am severely injured..."); throw new Injured()}
+    case Mustketball(hops)  => { ballsSeen += 1; sender ! Status("Seriouly, a bullet? I am dead... :("); throw new Killed()}
+    case BallsSeen          => { println(s"got balls seen"); sender ! Status(s"seen $ballsSeen balls") }
     case msg @ _            => throw new Exception(s"recieved unknown message $msg")
   }
 }

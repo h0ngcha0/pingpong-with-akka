@@ -7,6 +7,8 @@ import akka.event.Logging
 class SupervisedPingPong extends Actor {
   val log = Logging(context.system, this)
 
+  // add state
+
   // a few strategies
   override val supervisorStrategy = OneForOneStrategy() {
     case _: Killed  => Stop

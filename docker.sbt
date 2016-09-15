@@ -8,7 +8,7 @@ dockerBaseImage := "java"
 
 dockerEntrypoint := Seq(
   "bin/akka-ping-pong",
-  "-Dmaster.akka.remote.netty.tcp.hostname=akka-ping-pong"
+  "-Dakka.remote.netty.tcp.hostname=pingpong"
 )
 
 enablePlugins(JavaAppPackaging)

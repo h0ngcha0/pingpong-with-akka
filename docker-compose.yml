@@ -4,4 +4,4 @@ pingpong:
       - "9000:9000"
       - "2551:2551"
       - "2552:2552"
-    hostname: akka-ping-pong
+    hostname: pingpong

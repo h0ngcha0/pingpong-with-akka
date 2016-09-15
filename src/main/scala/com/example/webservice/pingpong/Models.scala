@@ -9,6 +9,7 @@ case class Basketball(hops: Int = 0) extends Ball
 case class Fireball(hops: Int = 0) extends Ball
 case class Mustketball(hops: Int = 0) extends Ball
 case class Status(status: String) extends Payload
+case object BallsSeen
 
 class Killed extends Exception    // stop
 class Faint extends Exception     // resumable

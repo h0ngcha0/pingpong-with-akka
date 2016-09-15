@@ -28,6 +28,9 @@ class Endpoint()(
     (post & entity(as[Payload])) {
       case msg : Ball => complete { (basicPingPong ? msg).mapTo[Payload] }
       case _ => complete(StatusCodes.BadRequest)
+    } ~
+    get {
+      complete { (basicPingPong ? BallsSeen).mapTo[Payload] }
     }
   }
 
@@ -35,6 +38,9 @@ class Endpoint()(
     (post & entity(as[Payload])) {
       case msg : Ball => complete { (supervisedPingPong ? msg).mapTo[Payload] }
       case _ => complete(StatusCodes.BadRequest)
+    } ~
+    get {
+      complete { (supervisedPingPong ? BallsSeen).mapTo[Payload] }
     }
   }
 
