@@ -9,7 +9,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 trait HttpService extends pingpong.Module
 {
-  override implicit val system: ActorSystem = ActorSystem()
+  override implicit val system: ActorSystem = ActorSystem("MySystem")
   override implicit val config: Config = ConfigFactory.load()
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
   override implicit val materializer: Materializer = ActorMaterializer()
