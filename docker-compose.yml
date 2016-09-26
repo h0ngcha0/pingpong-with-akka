@@ -1,7 +1,12 @@
-pingpong:
+version: '2'
+
+services:
+  seed:
     image: com.example/akka-ping-pong:1.0.0
-    ports:
-      - "9000:9000"
-      - "2551:2551"
-      - "2552:2552"
-    hostname: pingpong
+    ports: [ 9000 ]
+    hostname: seed
+
+  node:
+    image: com.example/akka-ping-pong:1.0.0
+    ports: [ 9000 ]
+    links: [ seed ]

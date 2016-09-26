@@ -24,14 +24,22 @@ class Endpoint()(
   val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
   val supervisedPingPong = system.actorOf(SupervisedPingPong.props, "SupervisedPingPong")
 
-  val basicPingRoute = path("basic" / "ping") {
-    (post & entity(as[Payload])) {
-      case msg : Ball => complete { (basicPingPong ? msg).mapTo[Payload] }
-      case _ => complete(StatusCodes.BadRequest)
+  val basicPingRoute = pathPrefix("basic") {
+    path("ping") {
+      (post & entity(as[Payload])) {
+        case msg : Ball => complete { (basicPingPong ? msg).mapTo[Payload] }
+        case _ => complete(StatusCodes.BadRequest)
+      } ~
+      get {
+        complete { (basicPingPong ? BallsSeen).mapTo[Payload] }
+      }
     } ~
-    get {
-      complete { (basicPingPong ? BallsSeen).mapTo[Payload] }
+    path("all") {
+      get {
+        complete { (basicPingPong ? BallsSeenAll).mapTo[Payload] }
+      }
     }
+
   }
 
   val supervisedRestartRoute = path("supervised" / "ping") {
