@@ -21,8 +21,8 @@ class ClusteredPingPong extends Actor {
   var ballsSeen = 0
 
   def receive: Receive = {
-    case PingPongball(hops) => ballsSeen += 1; sender ! PingPongball(hops+1)
-    case BallsSeen          => sender ! Status(s"seen $ballsSeen balls")
+    case PingPongball => ballsSeen += 1; sender ! PingPongball
+    case BallsSeen    => sender ! Status(s"seen $ballsSeen balls")
 
     case BallsSeenAll       =>
       val nodeAddrs = cluster.state.members.filter(_.status == MemberStatus.Up).map(_.address).toSeq

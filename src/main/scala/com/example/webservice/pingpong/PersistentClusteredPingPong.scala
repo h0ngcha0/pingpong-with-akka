@@ -24,8 +24,8 @@ class PersistentClusteredPingPong extends PersistentActor {
   var ballsSeen = 0
   override def persistenceId: String = InetAddress.getLocalHost.getHostName
   override def receiveCommand: Receive = {
-    case msg @ PingPongball(hops) => persist(msg) { m =>
-      ballsSeen += 1; sender ! PingPongball(hops+1)
+    case msg @ PingPongball => persist(msg) { m =>
+      ballsSeen += 1; sender ! PingPongball
     }
     case BallsSeen          => sender ! Status(s"seen $ballsSeen balls")
     case BallsSeenAll       =>
@@ -46,9 +46,9 @@ class PersistentClusteredPingPong extends PersistentActor {
   }
 
   override def receiveRecover: Receive = {
-    case event: PingPongball =>
+    case PingPongball =>
       ballsSeen = ballsSeen + 1
-      log.info("Replayed {}", event.getClass.getSimpleName)
+      log.info("Replayed PingPongball")
   }
 
 }

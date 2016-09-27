@@ -1,5 +1,4 @@
 :port = 9000
-:port2 = 32776
 
 :header = <<
 CONTENT-TYPE: application/json
@@ -9,7 +8,7 @@ CONTENT-TYPE: application/json
 POST http://localhost::port/basic/ping
 :header
 
-{"pingpongball": 0}
+{"type": "pingpongball"}
 
 # Get balls seen by basic
 GET http://localhost::port/basic/ping
@@ -18,7 +17,7 @@ GET http://localhost::port/basic/ping
 POST http://localhost::port/supervised/ping
 :header
 
-{"mustketball": 0}
+{"type": "fireball"}
 
 # Get balls seen by supervised
 GET http://localhost::port/supervised/ping
@@ -29,13 +28,13 @@ GET http://localhost::port/supervised/ping
 POST http://localhost::port/clustered/ping
 :header
 
-{"pingpongball": 0}
+{"type": "pingpongball"}
 
 # worker node
 POST http://localhost::port2/clustered/ping
 :header
 
-{"pingpongball": 0}
+{"type": "pingpongball"}
 
 # Get balls seen by one member in cluster
 GET http://localhost::port/clustered/ping

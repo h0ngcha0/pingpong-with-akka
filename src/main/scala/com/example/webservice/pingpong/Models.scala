@@ -4,11 +4,12 @@ import spray.json._
 
 trait Payload
 trait Ball extends Payload
-case class PingPongball(hops: Int = 0) extends Ball
-case class Basketball(hops: Int = 0) extends Ball
-case class Fireball(hops: Int = 0) extends Ball
-case class Mustketball(hops: Int = 0) extends Ball
+case object PingPongball extends Ball
+case object Basketball extends Ball
+case object Fireball extends Ball
+case object Bullet extends Ball
 case class Status(status: String) extends Payload
+
 case object BallsSeen
 case object BallsSeenAll
 
@@ -20,22 +21,22 @@ trait Protocols extends DefaultJsonProtocol {
   implicit val payloadFormat: RootJsonFormat[Payload] = new RootJsonFormat[Payload] {
     def read(json: JsValue): Payload = json match {
       case obj: JsObject => obj.fields.head match {
-        case ("pingpongball", JsNumber(hops))  => PingPongball(hops.toInt)
-        case ("basketball",   JsNumber(hops))  => Basketball(hops.toInt)
-        case ("fireball",     JsNumber(hops))  => Fireball(hops.toInt)
-        case ("mustketball",  JsNumber(hops))  => Mustketball(hops.toInt)
-        case ("status",       JsString(label)) => Status(label)
+        case ("type",   JsString("pingpongball"))  => PingPongball
+        case ("type",   JsString("basketball"))    => Basketball
+        case ("type",   JsString("fireball"))      => Fireball
+        case ("type",   JsString("bullet"))        => Bullet
+        case ("status", JsString(label))           => Status(label)
         case _ => deserializationError("expecting (kind, JsString), got " + json)
       }
       case _ => deserializationError("expecting JsString, got " + json)
     }
 
     def write(payload: Payload): JsValue = payload match {
-      case PingPongball(hops) => JsObject("pingpongball" -> JsNumber(hops))
-      case Basketball(hops)   => JsObject("basketball"   -> JsNumber(hops))
-      case Fireball(hops)     => JsObject("fireball"     -> JsNumber(hops))
-      case Mustketball(hops)  => JsObject("mustketball"  -> JsNumber(hops))
-      case Status(label)      => JsObject("status"       -> JsString(label))
+      case PingPongball  => JsObject("type"   -> JsString("pingpongball"))
+      case Basketball    => JsObject("type"   -> JsString("basketball"))
+      case Fireball      => JsObject("type"   -> JsString("fireball"))
+      case Bullet        => JsObject("type"   -> JsString("bullet"))
+      case Status(label) => JsObject("status" -> JsString(label))
     }
   }
 }

@@ -13,13 +13,20 @@ class BasicPingPong extends Actor {
   }
 
   def receive: Receive = {
-    case PingPongball(hops) => { ballsSeen += 1; sender ! PingPongball(hops+1)}
-    case Basketball(hops)   => { ballsSeen += 1; sender ! Status("What a big ball, I am fainted..."); throw new Faint()}
-    case Fireball(hops)     => { ballsSeen += 1; sender ! Status("Got fire, I am severely injured..."); throw new Injured()}
-    case Mustketball(hops)  => { ballsSeen += 1; sender ! Status("Seriouly, a bullet? I am dead... :("); throw new Killed()}
-    case BallsSeen          => { println(s"got balls seen"); sender ! Status(s"seen $ballsSeen balls") }
-    case msg @ _            => throw new Exception(s"recieved unknown message $msg")
+    case ball: Ball => {
+      ballsSeen += 1
+      ball match {
+        case PingPongball => sender ! PingPongball
+        case Basketball   => sender ! Status("What a big ball, I am fainted..."); throw new Faint()
+        case Fireball     => sender ! Status("Got fire, I am severely injured..."); throw new Injured()
+        case Bullet       => sender ! Status("Seriouly, a bullet? I am dead... :("); throw new Killed()
+      }
+    }
+    case BallsSeen    => { sender ! Status(s"seen $ballsSeen balls") }
+    case msg @ _      => throw new Exception(s"recieved unknown message $msg")
   }
+
+
 }
 
 object BasicPingPong {
