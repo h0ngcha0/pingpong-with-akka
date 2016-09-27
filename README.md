@@ -25,7 +25,7 @@ docker-compose up
 under the project root directory
 
 
-# Example
+# Example (executable in [restclient-mode](https://github.com/pashky/restclient.el))
 
 :port = 9000
 
