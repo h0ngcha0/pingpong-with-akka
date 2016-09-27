@@ -33,12 +33,12 @@ under the project root directory
 CONTENT-TYPE: application/json
 #
 
-# Send a pingpongball
+### Send a pingpongball
 POST http://localhost::port/ping
 :header
 
 {"type": "pingpongball"}
 
-# Get number of balls seen
+### Get number of balls seen
 GET http://localhost::port/ping
 :header
