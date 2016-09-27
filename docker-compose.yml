@@ -6,9 +6,3 @@ services:
     ports:
       - 9000:9000
     hostname: seed
-    command: "-Dakka.remote.netty.tcp.hostname=seed"
-
-  node:
-    image: com.example/akka-ping-pong:1.0.0
-    ports: [ 9000 ]
-    links: [ seed ]

@@ -25,8 +25,20 @@ docker-compose up
 under the project root directory
 
 
-# Example
+# Example (executable in [restclient-mode](https://github.com/pashky/restclient.el))
 
-``` bash
-curl -XPOST -H"Content-Type: application/json" -d'{"pingpongball": 0}' localhost:9000/basic/ping
-```
+:port = 9000
+
+:header = <<
+CONTENT-TYPE: application/json
+#
+
+# Send a pingpongball
+POST http://localhost::port/ping
+:header
+
+{"type": "pingpongball"}
+
+# Get number of balls seen
+GET http://localhost::port/ping
+:header
