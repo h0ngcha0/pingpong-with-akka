@@ -11,3 +11,4 @@ services:
   node:
     image: com.example/akka-ping-pong:1.0.0
     ports: [ 9000 ]
+    links: [ seed ]

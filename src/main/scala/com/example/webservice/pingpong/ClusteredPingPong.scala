@@ -31,7 +31,6 @@ class ClusteredPingPong extends Actor {
 
     case BallsSeenAll       =>
       val nodeAddrs = cluster.state.members.filter(_.status == MemberStatus.Up).map(_.address).toSeq
-      println(s"nodeAddrs: $nodeAddrs")
       val responses = nodeAddrs.map { addr =>
         val nodePath = RootActorPath(addr)
         val actor = context.actorSelection(nodePath / "user" / "ClusteredPingPong")
@@ -41,10 +40,7 @@ class ClusteredPingPong extends Actor {
 
       val s = sender
       Future.sequence(responses).onComplete {
-        case Success(statuses) => {
-          println(s"statuses: $statuses")
-          s ! Status(statuses map (_.status) mkString "\n")
-        }
+        case Success(statuses) => s ! Status(statuses map (_.status) mkString "\n")
         case Failure(ex)       => s ! Status(ex.toString)
       }
 
