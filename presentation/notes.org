@@ -1,0 +1,24 @@
+* Fault Tolerance
+** OneForOneStrategy
+   directive apply to just one child.
+** AllForOneStrategy
+   directive apply to all children.
+** StoppingSupervisorStrategy
+
+
+Restart will keep the state of the actor? what?
+
+pong should have a internal state that records how many times it is has pong-ed
+
+play a normal pingpong ball
+play a iron ball
+play a bullet
+* Networking
+Gossip protocol
+Vector clocks
+Cluster membership state is a CRDT
+Phi Accrual Failure Detector
+
+
+how do we shutdown a job runner service?
+a command or?

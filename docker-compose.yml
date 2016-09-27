@@ -3,7 +3,8 @@ version: '2'
 services:
   seed:
     image: com.example/akka-ping-pong:1.0.0
-    ports: [ 9000 ]
+    ports:
+      - 9000:9000
     hostname: seed
 
   node:

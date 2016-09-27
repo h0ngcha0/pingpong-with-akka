@@ -23,23 +23,16 @@ class Endpoint()(
 
   val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
   val supervisedPingPong = system.actorOf(SupervisedPingPong.props, "SupervisedPingPong")
+  val clusteredPingPong = system.actorOf(ClusteredPingPong.props, "ClusteredPingPong")
 
-  val basicPingRoute = pathPrefix("basic") {
-    path("ping") {
-      (post & entity(as[Payload])) {
-        case msg : Ball => complete { (basicPingPong ? msg).mapTo[Payload] }
-        case _ => complete(StatusCodes.BadRequest)
-      } ~
-      get {
-        complete { (basicPingPong ? BallsSeen).mapTo[Payload] }
-      }
+  val basicPingRoute = path("basic" / "ping") {
+    (post & entity(as[Payload])) {
+      case msg : Ball => complete { (supervisedPingPong ? msg).mapTo[Payload] }
+      case _ => complete(StatusCodes.BadRequest)
     } ~
-    path("all") {
-      get {
-        complete { (basicPingPong ? BallsSeenAll).mapTo[Payload] }
-      }
+    get {
+      complete { (supervisedPingPong ? BallsSeen).mapTo[Payload] }
     }
-
   }
 
   val supervisedRestartRoute = path("supervised" / "ping") {
@@ -52,11 +45,28 @@ class Endpoint()(
     }
   }
 
+  val clusteredPingRoute = pathPrefix("clustered") {
+    path("ping") {
+      (post & entity(as[Payload])) {
+        case msg : Ball => complete { (clusteredPingPong ? msg).mapTo[Payload] }
+        case _ => complete(StatusCodes.BadRequest)
+      } ~
+      get {
+        complete { (clusteredPingPong ? BallsSeen).mapTo[Payload] }
+      }
+    } ~
+    path("all") {
+      get {
+        complete { (clusteredPingPong ? BallsSeenAll).mapTo[Payload] }
+      }
+    }
+  }
 
   def routes = {
     logRequestResult("pingpong-with-akka") {
       basicPingRoute ~
-      supervisedRestartRoute
+      supervisedRestartRoute ~
+      clusteredPingRoute
     }
   }
 }
