@@ -10,5 +10,6 @@ libraryDependencies ++= {
     "com.softwaremill.macwire" %% "macros" % "2.1.0" % "provided"
   ) ++
   Deps.akka ++
+  Deps.leveldb ++
   Deps.test
 }

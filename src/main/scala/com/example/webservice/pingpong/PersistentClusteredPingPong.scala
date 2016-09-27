@@ -4,13 +4,16 @@ import akka.actor.{Actor, ActorSelection, Address, Props, RootActorPath}
 import akka.cluster.{ Cluster, MemberStatus }
 import akka.event.Logging
 import akka.pattern.ask
+import akka.persistence.PersistentActor
 import akka.util.Timeout
+import java.net.InetAddress
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-class ClusteredPingPong extends Actor {
+
+class PersistentClusteredPingPong extends PersistentActor {
   val log = Logging(context.system, this)
 
   implicit val executionContext = context.dispatcher
@@ -19,11 +22,12 @@ class ClusteredPingPong extends Actor {
   val cluster = Cluster.get(context.system)
 
   var ballsSeen = 0
-
-  def receive: Receive = {
-    case PingPongball(hops) => ballsSeen += 1; sender ! PingPongball(hops+1)
+  override def persistenceId: String = InetAddress.getLocalHost.getHostName
+  override def receiveCommand: Receive = {
+    case msg @ PingPongball(hops) => persist(msg) { m =>
+      ballsSeen += 1; sender ! PingPongball(hops+1)
+    }
     case BallsSeen          => sender ! Status(s"seen $ballsSeen balls")
-
     case BallsSeenAll       =>
       val nodeAddrs = cluster.state.members.filter(_.status == MemberStatus.Up).map(_.address).toSeq
       val responses = nodeAddrs.map { addr =>
@@ -40,8 +44,15 @@ class ClusteredPingPong extends Actor {
       }
 
   }
+
+  override def receiveRecover: Receive = {
+    case event: PingPongball =>
+      ballsSeen = ballsSeen + 1
+      log.info("Replayed {}", event.getClass.getSimpleName)
+  }
+
 }
 
-object ClusteredPingPong {
-  def props: Props = Props[ClusteredPingPong]
+object PersistentClusteredPingPong {
+  def props: Props = Props[PersistentClusteredPingPong]
 }

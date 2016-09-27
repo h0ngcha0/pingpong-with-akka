@@ -16,6 +16,11 @@ object Deps {
     "com.typesafe.akka"          %% "akka-http-testkit"                    % akkaV
   )
 
+  val leveldb = Seq(
+    "org.iq80.leveldb"           %  "leveldb"                              % "0.7",
+    "org.fusesource.leveldbjni"  %  "leveldbjni-all"                       % "1.8"
+  )
+
   val test = Seq(
     "org.scalatest"              %% "scalatest"                            % scalaTestV % "test"
   )

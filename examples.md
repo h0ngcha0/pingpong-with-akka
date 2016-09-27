@@ -18,7 +18,7 @@ GET http://localhost::port/basic/ping
 POST http://localhost::port/supervised/ping
 :header
 
-{"pingpongball": 0}
+{"mustketball": 0}
 
 # Get balls seen by supervised
 GET http://localhost::port/supervised/ping
