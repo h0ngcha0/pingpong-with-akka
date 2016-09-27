@@ -4,12 +4,12 @@ import akka.actor.Actor
 import akka.actor.Props
 import akka.event.Logging
 
-class BasicPingPong extends Actor {
+class PingPong extends Actor {
   val log = Logging(context.system, this)
 
   var ballsSeen = 0
   override def preRestart(reason: Throwable, message: Option[Any]) = {
-    log.info(s"basic pingpong is restarted because of $reason")
+    log.info(s"pingpong is restarted because of $reason")
   }
 
   def receive: Receive = {
@@ -29,6 +29,6 @@ class BasicPingPong extends Actor {
 
 }
 
-object BasicPingPong {
-  def props: Props = Props[BasicPingPong]
+object PingPong {
+  def props: Props = Props[PingPong]
 }

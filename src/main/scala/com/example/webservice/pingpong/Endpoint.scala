@@ -21,72 +21,16 @@ class Endpoint()(
 ) extends Protocols {
   implicit val timeout = Timeout(5.seconds)
 
-  val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
-  val supervisedPingPong = system.actorOf(SupervisedPingPong.props, "SupervisedPingPong")
-  val clusteredPingPong = system.actorOf(ClusteredPingPong.props, "ClusteredPingPong")
-  val persistentClusteredPingPong = system.actorOf(PersistentClusteredPingPong.props, "PersistentClusteredPingPong")
+  val pingPong = system.actorOf(SupervisedPingPong.props, "SupervisedPingPong")
 
-  val basicPingRoute = path("basic" / "ping") {
+
+  val routes = path("ping") {
     (post & entity(as[Payload])) {
-      case msg : Ball => complete { (supervisedPingPong ? msg).mapTo[Payload] }
+      case msg : Ball => complete { (pingPong ? msg).mapTo[Payload] }
       case _ => complete(StatusCodes.BadRequest)
     } ~
     get {
-      complete { (supervisedPingPong ? BallsSeen).mapTo[Payload] }
-    }
-  }
-
-  val supervisedRestartRoute = path("supervised" / "ping") {
-    (post & entity(as[Payload])) {
-      case msg : Ball => complete { (supervisedPingPong ? msg).mapTo[Payload] }
-      case _ => complete(StatusCodes.BadRequest)
-    } ~
-    get {
-      complete { (supervisedPingPong ? BallsSeen).mapTo[Payload] }
-    }
-  }
-
-  val clusteredPingRoute = pathPrefix("clustered") {
-    path("ping") {
-      (post & entity(as[Payload])) {
-        case msg : Ball => complete { (clusteredPingPong ? msg).mapTo[Payload] }
-        case _ => complete(StatusCodes.BadRequest)
-      } ~
-      get {
-        complete { (clusteredPingPong ? BallsSeen).mapTo[Payload] }
-      }
-    } ~
-    path("all") {
-      get {
-        complete { (clusteredPingPong ? BallsSeenAll).mapTo[Payload] }
-      }
-    }
-  }
-
-
-  val persistentClusteredPingRoute = pathPrefix("persistent" / "clustered") {
-    path("ping") {
-      (post & entity(as[Payload])) {
-        case msg : Ball => complete { (persistentClusteredPingPong ? msg).mapTo[Payload] }
-        case _ => complete(StatusCodes.BadRequest)
-      } ~
-      get {
-        complete { (persistentClusteredPingPong ? BallsSeen).mapTo[Payload] }
-      }
-    } ~
-    path("all") {
-      get {
-        complete { (persistentClusteredPingPong ? BallsSeenAll).mapTo[Payload] }
-      }
-    }
-  }
-
-  def routes = {
-    logRequestResult("pingpong-with-akka") {
-      basicPingRoute ~
-      supervisedRestartRoute ~
-      clusteredPingRoute ~
-      persistentClusteredPingRoute
+      complete { (pingPong ? BallsSeen).mapTo[Payload] }
     }
   }
 }
