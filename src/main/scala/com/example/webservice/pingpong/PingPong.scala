@@ -3,9 +3,12 @@ package com.example.webservice.pingpong
 import akka.actor.Actor
 import akka.actor.Props
 import akka.event.Logging
+import java.net.InetAddress
 
 class PingPong extends Actor {
   val log = Logging(context.system, this)
+
+  val hostname = InetAddress.getLocalHost.getHostName
 
   var ballsSeen = 0
   override def preRestart(reason: Throwable, message: Option[Any]) = {
@@ -22,8 +25,7 @@ class PingPong extends Actor {
         case Bullet       => sender ! Status("Seriouly, a bullet? I am dead... :("); throw new Killed()
       }
     }
-    case BallsSeen    => { sender ! Status(s"seen $ballsSeen balls") }
-    case msg @ _      => throw new Exception(s"recieved unknown message $msg")
+    case BallsSeen  => sender ! Status(s"seen $ballsSeen balls", Some(hostname))
   }
 
 
