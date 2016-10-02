@@ -22,7 +22,7 @@ class Endpoint()(
   implicit val timeout = Timeout(5.seconds)
 
   val pingPong = system.actorOf(PingPong.props, "PingPong")
-
+  val pingPongView = system.actorOf(PingPongView.props, "PingPongView")
 
   val pingRoutes = path("ping") {
     (post & entity(as[Payload])) {
@@ -44,5 +44,11 @@ class Endpoint()(
     }
   }
 
-  val routes = pingRoutes ~ allRoutes
+  val statsRoutes = path("stats") {
+    get {
+      complete { (pingPongView ? BallsSeen).mapTo[Payload] }
+    }
+  }
+
+  val routes = pingRoutes ~ allRoutes ~ statsRoutes
 }
