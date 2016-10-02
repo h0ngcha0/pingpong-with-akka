@@ -11,6 +11,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
+
 class PingPong extends Actor {
   val log = Logging(context.system, this)
 
@@ -22,9 +23,9 @@ class PingPong extends Actor {
 
   var ballsSeen = 0
 
-  def receive: Receive = {
+  override def receive: Receive = {
     case msg : Ball => ballsSeen += 1; sender ! msg
-    case BallsSeen  => sender ! Status(s"seen $ballsSeen balls")
+    case BallsSeen  => sender ! Status(s"seen $ballsSeen balls", Some(hostname))
 
     case ToAll(msg) =>
       val s = sender
