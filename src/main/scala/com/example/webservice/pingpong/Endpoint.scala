@@ -40,7 +40,7 @@ class Endpoint()(
       case _ => complete(StatusCodes.BadRequest)
     } ~
     get {
-      complete { (pingPong ? ToAll(BallsSeen)).mapTo[Payload] }
+      complete { (pingPong ? ToAll(BallsSeen)).mapTo[List[Payload]] }
     }
   }
 
