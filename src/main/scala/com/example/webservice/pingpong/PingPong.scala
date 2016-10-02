@@ -30,7 +30,7 @@ class PingPong extends PersistentActor {
     case BallsSeen          => sender ! Status(s"seen $ballsSeen balls")
 
     case BallsSeenAll       =>
-      val nodeAddrs = cluster.state.members.filter(_.status == MemberStatus.Up).map(_.address).toSeq
+      val nodeAddrs = cluster.state.members.filter(_.status == MemberStatus.Up).map(_.address).toList
       val responses = nodeAddrs.map { addr =>
         val nodePath = RootActorPath(addr)
         val actor = context.actorSelection(nodePath / "user" / "PingPong")
@@ -42,10 +42,9 @@ class PingPong extends PersistentActor {
 
       val s = sender
       Future.sequence(responses).onComplete {
-        case Success(statuses) => s ! Status(statuses map (_.status) mkString " ||| ")
-        case Failure(ex)       => s ! Status(ex.toString)
+        case Success(statuses) => s ! statuses
+        case Failure(ex)       => throw ex
       }
-
   }
 
   override def receiveRecover: Receive = {

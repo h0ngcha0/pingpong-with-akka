@@ -35,7 +35,7 @@ class Endpoint()(
   } ~
   path("all") {
     get {
-      complete { (pingPong ? BallsSeenAll).mapTo[Payload] }
+      complete { (pingPong ? BallsSeenAll).mapTo[List[Payload]] }
     }
   }
 }
