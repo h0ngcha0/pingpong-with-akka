@@ -21,7 +21,7 @@ class Endpoint()(
 ) extends Protocols {
   implicit val timeout = Timeout(5.seconds)
 
-  val pingPong = system.actorOf(SupervisedPingPong.props, "SupervisedPingPong")
+  val pingPong = system.actorOf(SupervisedPingPong.props, "PingPong")
 
 
   val routes = path("ping") {
