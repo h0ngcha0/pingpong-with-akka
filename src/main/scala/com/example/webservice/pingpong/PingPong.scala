@@ -5,6 +5,7 @@ import akka.cluster.{ Cluster, MemberStatus }
 import akka.event.Logging
 import akka.pattern.ask
 import akka.util.Timeout
+import java.net.InetAddress
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -17,29 +18,36 @@ class PingPong extends Actor {
   implicit val askTimeout = Timeout(5.second)
 
   val cluster = Cluster.get(context.system)
+  val hostname = InetAddress.getLocalHost.getHostName
 
   var ballsSeen = 0
 
   def receive: Receive = {
-    case PingPongball => ballsSeen += 1; sender ! PingPongball
-    case BallsSeen    => sender ! Status(s"seen $ballsSeen balls")
+    case msg : Ball => ballsSeen += 1; sender ! msg
+    case BallsSeen  => sender ! Status(s"seen $ballsSeen balls")
 
-    case BallsSeenAll       =>
-      val nodeAddrs = cluster.state.members.filter(_.status == MemberStatus.Up).map(_.address).toSeq
-      val responses = nodeAddrs.map { addr =>
-        val nodePath = RootActorPath(addr)
-        val actor = context.actorSelection(nodePath / "user" / "PingPong")
-        log.info(s"sending to $actor")
-        (actor ? BallsSeen).mapTo[Status].map { status =>
-          status.copy(status = s"$addr has seen ${status.status}.")
-        }
-      }
-
+    case ToAll(msg) =>
       val s = sender
-      Future.sequence(responses).onComplete {
-        case Success(statuses) => s ! Status(statuses map (_.status) mkString " ||| ")
-        case Failure(ex)       => s ! Status(ex.toString)
+      sendToAll(msg).onComplete {
+        case Success(statuses) => s ! statuses
+        case Failure(ex)       => throw ex
       }
+  }
+
+  private def sendToAll(msg: Payload): Future[List[Payload]] = {
+    val nodeAddrs = cluster.state.members
+      .filter(_.status == MemberStatus.Up)
+      .map(_.address)
+      .toList
+
+    val responses = nodeAddrs.map { addr =>
+      val nodePath = RootActorPath(addr)
+      val actor = context.actorSelection(nodePath / "user" / "PingPong")
+      log.info(s"sending to $actor")
+      (actor ? msg).mapTo[Payload]
+    }
+
+    Future.sequence(responses)
   }
 }
 
