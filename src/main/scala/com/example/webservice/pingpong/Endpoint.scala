@@ -24,7 +24,7 @@ class Endpoint()(
   val pingPong = system.actorOf(PingPong.props, "PingPong")
 
 
-  val routes = path("ping") {
+  val pingRoutes = path("ping") {
     (post & entity(as[Payload])) {
       case msg : Ball => complete { (pingPong ? msg).mapTo[Payload] }
       case _ => complete(StatusCodes.BadRequest)
@@ -32,10 +32,17 @@ class Endpoint()(
     get {
       complete { (pingPong ? BallsSeen).mapTo[Payload] }
     }
-  } ~
-  path("all") {
+  }
+
+  val allRoutes = path("all" / "ping") {
+    (post & entity(as[Payload])) {
+      case msg : Ball => complete { (pingPong ? ToAll(msg)).mapTo[List[Payload]] }
+      case _ => complete(StatusCodes.BadRequest)
+    } ~
     get {
-      complete { (pingPong ? BallsSeenAll).mapTo[List[Payload]] }
+      complete { (pingPong ? ToAll(BallsSeen)).mapTo[List[Payload]] }
     }
   }
+
+  val routes = pingRoutes ~ allRoutes
 }

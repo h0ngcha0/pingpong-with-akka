@@ -20,39 +20,44 @@ class PingPong extends PersistentActor {
   implicit val askTimeout = Timeout(5.second)
 
   val cluster = Cluster.get(context.system)
+  val hostname = InetAddress.getLocalHost.getHostName
 
   var ballsSeen = 0
-  override def persistenceId: String = InetAddress.getLocalHost.getHostName
+  override def persistenceId: String = hostname
   override def receiveCommand: Receive = {
-    case msg @ PingPongball => persist(msg) { m =>
-      ballsSeen += 1; sender ! PingPongball
+    case msg : Ball => persist(msg) { m =>
+      ballsSeen += 1; sender ! msg
     }
-    case BallsSeen          => sender ! Status(s"seen $ballsSeen balls")
 
-    case BallsSeenAll       =>
-      val nodeAddrs = cluster.state.members.filter(_.status == MemberStatus.Up).map(_.address).toList
-      val responses = nodeAddrs.map { addr =>
-        val nodePath = RootActorPath(addr)
-        val actor = context.actorSelection(nodePath / "user" / "PingPong")
-        log.info(s"sending to $actor")
-        (actor ? BallsSeen).mapTo[Status].map { status =>
-          status.copy(status = s"$addr has seen ${status.status}.")
-        }
-      }
+    case BallsSeen  =>  sender ! Status(s"seen $ballsSeen balls", Some(hostname))
 
+    case ToAll(msg) =>
       val s = sender
-      Future.sequence(responses).onComplete {
+      sendToAll(msg) onComplete {
         case Success(statuses) => s ! statuses
         case Failure(ex)       => throw ex
       }
   }
 
   override def receiveRecover: Receive = {
-    case PingPongball =>
-      ballsSeen = ballsSeen + 1
-      log.info("Replayed PingPongball")
+    case ball: Ball => ballsSeen = ballsSeen + 1
   }
 
+  private def sendToAll(msg: Payload): Future[List[Payload]] = {
+    val nodeAddrs = cluster.state.members
+      .filter(_.status == MemberStatus.Up)
+      .map(_.address)
+      .toList
+
+    val responses = nodeAddrs.map { addr =>
+      val nodePath = RootActorPath(addr)
+      val actor = context.actorSelection(nodePath / "user" / "PingPong")
+      log.info(s"sending to $actor")
+      (actor ? msg).mapTo[Payload]
+    }
+
+    Future.sequence(responses)
+  }
 }
 
 object PingPong {
