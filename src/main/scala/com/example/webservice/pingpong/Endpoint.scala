@@ -21,16 +21,9 @@ class Endpoint()(
 ) extends Protocols {
   implicit val timeout = Timeout(5.seconds)
 
-  val pingPong = system.actorOf(PingPong.props, "PingPong")
-
-
-  val routes = path("ping") {
-    (post & entity(as[Payload])) {
-      case msg : Ball => complete { (pingPong ? msg).mapTo[Payload] }
-      case _ => complete(StatusCodes.BadRequest)
-    } ~
+  val routes = path("") {
     get {
-      complete { (pingPong ? BallsSeen).mapTo[Payload] }
+      complete { Future.successful("Hello World!") }
     }
   }
 }
