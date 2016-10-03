@@ -9,7 +9,7 @@ class PingPong extends Actor {
 
   var ballsSeen = 0
 
-  def receive: Receive = {
+  override def receive: Receive = {
     case PingPongball => ballsSeen = ballsSeen+1; sender ! PingPongball
     case BallsSeen    => sender ! Status(s"seen $ballsSeen balls")
   }
