@@ -22,6 +22,9 @@ class PingPong extends Actor {
   val hostname = InetAddress.getLocalHost.getHostName
 
   var ballsSeen = 0
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    log.info(s"pingpong is restarted because of $reason")
+  }
 
   override def receive: Receive = {
     case ball: Ball => {
