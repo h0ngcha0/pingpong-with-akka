@@ -15,7 +15,7 @@ class PingPong extends Actor {
     log.info(s"pingpong is restarted because of $reason")
   }
 
-  def receive: Receive = {
+  override def receive: Receive = {
     case ball: Ball => {
       ballsSeen += 1
       ball match {
