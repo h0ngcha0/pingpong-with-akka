@@ -25,20 +25,20 @@ class PingPong extends PersistentActor {
   var ballsSeen = 0
   override def persistenceId: String = hostname
   override def receiveCommand: Receive = {
-    case msg: Ball => persist(msg) { _ =>
+    case ball: Ball => persist(msg) { _ =>
       ballsSeen += 1
-      msg match {
+      ball match {
         case PingPongball => sender ! PingPongball
         case Basketball   => sender ! Status("What a big ball, I am fainted..."); throw new Faint()
         case Fireball     => sender ! Status("Got fire, I am severely injured..."); throw new Injured()
         case Bullet       => sender ! Status("Seriouly, a bullet? I am dead... :("); throw new Killed()
       }
     }
-    case BallsSeen  =>  sender ! Status(s"seen $ballsSeen balls", Some(hostname))
+    case BallsSeen  => sender ! Status(s"seen $ballsSeen balls", Some(hostname))
 
     case ToAll(msg) =>
       val s = sender
-      sendToAll(msg) onComplete {
+      sendToAll(msg).onComplete {
         case Success(statuses) => s ! statuses
         case Failure(ex)       => throw ex
       }
