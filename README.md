@@ -42,21 +42,3 @@ POST http://localhost::port/ping
 ### Get number of balls seen
 GET http://localhost::port/ping
 :header
-
-### Send a basketball (resume)
-POST http://localhost::port/ping
-:header
-
-{"type": "basketball"}
-
-### Send a fireball (restart)
-POST http://localhost::port/ping
-:header
-
-{"type": "fireball"}
-
-### Send a bullet (stop)
-POST http://localhost::port/ping
-:header
-
-{"type": "bullet"}
