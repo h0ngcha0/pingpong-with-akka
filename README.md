@@ -42,7 +42,3 @@ POST http://localhost::port/ping
 ### Get number of balls seen
 GET http://localhost::port/ping
 :header
-
-### Get number of balls seen by all (kill the container, try again and see if persistence works)
-GET http://localhost::port/all
-:header
