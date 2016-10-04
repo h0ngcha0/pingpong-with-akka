@@ -25,7 +25,7 @@ class PingPong extends PersistentActor {
   var ballsSeen = 0
   override def persistenceId: String = hostname
   override def receiveCommand: Receive = {
-    case ball: Ball => persist(msg) { _ =>
+    case ball: Ball => persist(ball) { _ =>
       ballsSeen += 1
       ball match {
         case PingPongball => sender ! PingPongball
