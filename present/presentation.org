@@ -1,0 +1,54 @@
+* Presentation
+** Actor model
+- Basic actor
+./get.sh basic
+./post.sh basic pingpongball
+./post.sh basic basketball
+
+** Fault tolerance (supervision)
+- Supervised basic actor
+./get.sh supervised-basic
+./post.sh supervised-basic pingpongball
+./post.sh supervised-basic basketball
+./post.sh supervised-basic fireball
+./post.sh supervised-basic bullet
+
+** Akka remote and akka cluster
+./get.sh clustered
+./post.sh clustered pingpongball
+./post.sh clustered basketball
+./post.sh clustered fireball
+./post.sh clustered bullet
+
+./get.sh clustered/all
+./post.sh clustered/all pingpongball
+./post.sh clustered/all basketball
+./post.sh clustered/all fireball
+./post.sh clustered/all bullet
+
+** Akka persistence
+./get.sh persistent/all
+./post.sh persistent/all pingpongball
+./post.sh persistent/all basketball
+./post.sh persistent/all fireball
+./post.sh persistent/all bullet
+
+./get.sh persistent
+./post.sh persistent pingpongball
+./post.sh persistent basketball
+./post.sh persistent fireball
+./post.sh persistent bullet
+
+different behaviour for fireball and bullet
+
+also survive:
+- docker-compose stop
+- docker-compose start
+
+watch curl -sb -X GET -H "Content-Type: application/json" localhost:9000/persistent/all/ping
+
+** Akka stream
+wscat -c ws://localhost:9000/available-balls
+could use remote
+** Akka http
+** Akka typed

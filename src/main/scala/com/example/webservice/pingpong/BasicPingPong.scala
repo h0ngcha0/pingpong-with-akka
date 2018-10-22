@@ -1,6 +1,7 @@
 package com.example.webservice.pingpong
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
+import akka.http.scaladsl.server.Directives.pathPrefix
 
 class BasicPingPong extends Actor with ActorLogging {
 
@@ -27,4 +28,13 @@ class BasicPingPong extends Actor with ActorLogging {
 
 object BasicPingPong {
   def props: Props = Props[BasicPingPong]
+
+  def routes(implicit system: ActorSystem) = {
+    val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
+
+    // Basic Routes
+    pathPrefix("basic") {
+      RouteHelper.pingRoutes(basicPingPong)
+    }
+  }
 }

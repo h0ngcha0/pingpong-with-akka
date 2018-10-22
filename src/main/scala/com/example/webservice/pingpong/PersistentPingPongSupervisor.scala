@@ -1,6 +1,7 @@
 package com.example.webservice.pingpong
 
-import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
+import akka.actor.{Actor, ActorLogging, ActorSystem, OneForOneStrategy, Props}
+import akka.http.scaladsl.server.Directives._
 import akka.actor.SupervisorStrategy._
 
 class PersistentPingPongSupervisor extends Actor with ActorLogging {
@@ -22,4 +23,17 @@ class PersistentPingPongSupervisor extends Actor with ActorLogging {
 
 object PersistentPingPongSupervisor {
   def props: Props = Props[PersistentPingPongSupervisor]
+
+  def routes(implicit system: ActorSystem) = {
+    val persistentPingPongSupervisor = system.actorOf(PersistentPingPongSupervisor.props, "PersistentPingPongSupervisor")
+    val pingPongView = system.actorOf(PersistentPingPongView.props, "PersistentPingPongView")
+
+    val persistentPingRoutes = RouteHelper.pingRoutes(persistentPingPongSupervisor)
+    val persistentAllRoutes = RouteHelper.allRoutes(persistentPingPongSupervisor)
+    val statsRoutes = RouteHelper.statsRoutes(pingPongView)
+
+    pathPrefix("persistent") {
+      persistentPingRoutes ~ persistentAllRoutes ~ statsRoutes
+    }
+  }
 }

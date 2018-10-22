@@ -1,13 +1,14 @@
 package com.example.webservice.pingpong
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.http.scaladsl.model.StatusCodes
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model.ws.TextMessage
 import akka.http.scaladsl.server.Directives._
-import akka.pattern.ask
 import akka.stream.Materializer
+import akka.stream.scaladsl.{Sink, Source}
 import akka.util.Timeout
 import com.typesafe.config.Config
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import play.api.libs.json.{Json, Writes}
 import Protocols._
 
 import scala.concurrent._
@@ -21,71 +22,26 @@ class Endpoint()(
 ) extends PlayJsonSupport {
   implicit val timeout = Timeout(5.seconds)
 
-  val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
-  val basicPingPongSupervisor = system.actorOf(BasicPingPongSupervisor.props, "BasicPingPongSupervisor")
-  val clusteredPingPongSupervisor = system.actorOf(ClusteredPingPongSupervisor.props, "ClusteredPingPongSupervisor")
-  val persistentPingPongSupervisor = system.actorOf(PersistentPingPongSupervisor.props, "PersistentPingPongSupervisor")
-  val pingPongView = system.actorOf(PersistentPingPongView.props, "PersistentPingPongView")
-
-  def pingRoutes(actor: ActorRef) = path("ping") {
-    (post & entity(as[Ball])) { ball =>
+  val availableBallsRoute = (path("available-balls") & get) {
+    extractUpgradeToWebSocket { upgrade =>
       complete {
-        (actor ? ball).mapTo[Payload]
+        val source = Source(Ball.all)
+          .map(toJsonTextMessage[Ball])
+          .throttle(1, 2.seconds)
+        upgrade.handleMessagesWithSinkSource(Sink.ignore, source)
       }
-    } ~
-      get {
-        complete {
-          (actor ? BallsSeen).mapTo[Payload]
-        }
-      }
-  }
-
-  def allRoutes(actor: ActorRef) = path("all" / "ping") {
-    (post & entity(as[Ball])) { ball =>
-      complete {
-        (actor ? ToAll(ball)).mapTo[List[Payload]]
-      }
-    } ~
-      get {
-        complete { (actor ? ToAll(BallsSeen)).mapTo[List[Payload]] }
-      }
-  }
-
-  val statsRoutes = path("stats") {
-    get {
-      complete { (pingPongView ? BallsSeen).mapTo[Payload] }
     }
   }
 
-  // Basic Routes
-  val basicPingRoutes = pathPrefix("basic") {
-    pingRoutes(basicPingPong)
+  val routes = BasicPingPong.routes ~
+    BasicPingPongSupervisor.routes ~
+    ClusteredPingPongSupervisor.routes ~
+    PersistentPingPongSupervisor.routes ~
+    availableBallsRoute
+
+
+  private def toJsonTextMessage[T: Writes](message: T): TextMessage.Strict = {
+    val jsonValue = Json.toJson(message)
+    TextMessage(Json.stringify(jsonValue))
   }
-
-
-  // Supervised Basic Routes
-  val supervisedBasicPingRoutes = pathPrefix("supervised-basic") {
-    pingRoutes(basicPingPongSupervisor)
-  }
-
-  // Clustered Routes
-  val clusteredPingRoutes = pingRoutes(clusteredPingPongSupervisor)
-  val clusteredAllRoutes = allRoutes(clusteredPingPongSupervisor)
-  val clusteredRoutes = pathPrefix("clustered") {
-    clusteredPingRoutes ~ clusteredAllRoutes
-  }
-
-  // Persistent Clustered Routes
-  val persistentPingRoutes = pingRoutes(persistentPingPongSupervisor)
-  val persistentAllRoutes = allRoutes(persistentPingPongSupervisor)
-  val persistentRoute = pathPrefix("persistent") {
-    persistentPingRoutes ~ persistentAllRoutes ~ statsRoutes
-  }
-
-
-
-  val routes = basicPingRoutes ~
-    supervisedBasicPingRoutes ~
-    clusteredRoutes ~
-    persistentRoute
 }
