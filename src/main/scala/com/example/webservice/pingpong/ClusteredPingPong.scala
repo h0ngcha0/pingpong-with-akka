@@ -1,19 +1,18 @@
 package com.example.webservice.pingpong
 
-import akka.actor.{Actor, ActorSelection, Address, Props, RootActorPath}
-import akka.cluster.{ Cluster, MemberStatus }
+import java.net.InetAddress
+
+import akka.actor.{Actor, Props, RootActorPath}
+import akka.cluster.{Cluster, MemberStatus}
 import akka.event.Logging
 import akka.pattern.ask
-import akka.persistence.PersistentActor
 import akka.util.Timeout
-import java.net.InetAddress
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-
-class PersistentPingPong extends PersistentActor {
+class ClusteredPingPong extends Actor {
   val log = Logging(context.system, this)
 
   implicit val executionContext = context.dispatcher
@@ -23,9 +22,12 @@ class PersistentPingPong extends PersistentActor {
   private val hostname = InetAddress.getLocalHost.getHostName
 
   var ballsSeen = 0
-  override def persistenceId: String = hostname
-  override def receiveCommand: Receive = {
-    case ball: Ball => persist(ball) { _ =>
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    log.info(s"${ClusteredPingPong.getClass.getSimpleName} is restarted because of $reason")
+  }
+
+  override def receive: Receive = {
+    case ball: Ball => {
       ballsSeen += 1
       ball match {
         case PingPongball => sender ! PingPongball
@@ -44,10 +46,6 @@ class PersistentPingPong extends PersistentActor {
       }
   }
 
-  override def receiveRecover: Receive = {
-    case _: Ball => ballsSeen = ballsSeen + 1
-  }
-
   private def sendToAll(msg: Payload): Future[List[Payload]] = {
     val nodeAddrs = cluster.state.members
       .filter(_.status == MemberStatus.Up)
@@ -56,7 +54,7 @@ class PersistentPingPong extends PersistentActor {
 
     val responses = nodeAddrs.map { addr =>
       val nodePath = RootActorPath(addr)
-      val actor = context.actorSelection(nodePath / "user" / "PersistentPingPongSupervisor")
+      val actor = context.actorSelection(nodePath / "user" / "ClusteredPingPongSupervisor")
       log.info(s"sending to $actor")
       (actor ? msg).mapTo[Payload]
     }
@@ -65,6 +63,6 @@ class PersistentPingPong extends PersistentActor {
   }
 }
 
-object PersistentPingPong {
-  def props: Props = Props[PersistentPingPong]
+object ClusteredPingPong {
+  def props: Props = Props[ClusteredPingPong]
 }

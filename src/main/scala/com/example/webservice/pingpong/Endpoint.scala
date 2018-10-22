@@ -23,6 +23,7 @@ class Endpoint()(
 
   val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
   val basicPingPongSupervisor = system.actorOf(BasicPingPongSupervisor.props, "BasicPingPongSupervisor")
+  val clusteredPingPongSupervisor = system.actorOf(ClusteredPingPongSupervisor.props, "ClusteredPingPongSupervisor")
   val persistentPingPongSupervisor = system.actorOf(PersistentPingPongSupervisor.props, "PersistentPingPongSupervisor")
   val pingPongView = system.actorOf(PersistentPingPongView.props, "PersistentPingPongView")
 
@@ -67,7 +68,14 @@ class Endpoint()(
     pingRoutes(basicPingPongSupervisor)
   }
 
-  // Persistent Routes
+  // Clustered Routes
+  val clusteredPingRoutes = pingRoutes(clusteredPingPongSupervisor)
+  val clusteredAllRoutes = allRoutes(clusteredPingPongSupervisor)
+  val clusteredRoutes = pathPrefix("clustered") {
+    clusteredPingRoutes ~ clusteredAllRoutes
+  }
+
+  // Persistent Clustered Routes
   val persistentPingRoutes = pingRoutes(persistentPingPongSupervisor)
   val persistentAllRoutes = allRoutes(persistentPingPongSupervisor)
   val persistentRoute = pathPrefix("persistent") {
@@ -78,5 +86,6 @@ class Endpoint()(
 
   val routes = basicPingRoutes ~
     supervisedBasicPingRoutes ~
+    clusteredRoutes ~
     persistentRoute
 }
