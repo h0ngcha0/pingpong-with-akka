@@ -2,35 +2,12 @@ package com.example.webservice.pingpong
 
 import play.api.libs.json._
 
-
-trait Protocols {
-  /*implicit val payloadFormat: RootJsonFormat[Payload] = new RootJsonFormat[Payload] {
-    def read(json: JsValue): Payload = json match {
-      case obj: JsObject => obj.fields.head match {
-        case ("type",   JsString("pingpongball"))  => PingPongball
-        case ("type",   JsString("basketball"))    => Basketball
-        case ("type",   JsString("fireball"))      => Fireball
-        case ("type",   JsString("bullet"))        => Bullet
-        case ("status", JsString(label))           => Status(label)
-        case _ => deserializationError("expecting (kind, JsString), got " + json)
-      }
-      case _ => deserializationError("expecting JsString, got " + json)
+object Protocols {
+  implicit val ballReads: Reads[Ball] = (JsPath \ "type").read[String].map { ballString =>
+    Ball.fromString(ballString).getOrElse {
+      throw new RuntimeException(s"Not a valid ball: $ballString")
     }
-
-    def write(payload: Payload): JsValue = payload match {
-      case PingPongball        => JsObject("type"   -> JsString("pingpongball"))
-      case Basketball          => JsObject("type"   -> JsString("basketball"))
-      case Fireball            => JsObject("type"   -> JsString("fireball"))
-      case Bullet              => JsObject("type"   -> JsString("bullet"))
-      case Status(label, from) => from match {
-        case None         => JsObject("status" -> JsString(label))
-        case Some(origin) => JsObject(
-          "status" -> JsString(label),
-          "from" -> JsString(origin)
-        )
-      }
-    }
-  }*/
+  }
 
   implicit val payloadFormat: Format[Payload] = {
     val reads = {

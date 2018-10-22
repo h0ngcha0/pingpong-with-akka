@@ -5,3 +5,4 @@ project/target/*
 .ensime_cache/
 logs
 .idea
+journal
