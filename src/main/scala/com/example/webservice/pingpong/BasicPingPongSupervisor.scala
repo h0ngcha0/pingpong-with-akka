@@ -2,9 +2,8 @@ package com.example.webservice.pingpong
 
 import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
 import akka.actor.SupervisorStrategy._
-import akka.event.Logging
 
-class PersistentPingPongSupervisor extends Actor with ActorLogging {
+class BasicPingPongSupervisor extends Actor with ActorLogging {
 
   override val supervisorStrategy = OneForOneStrategy() {
     case _: Killed  => Stop
@@ -12,15 +11,15 @@ class PersistentPingPongSupervisor extends Actor with ActorLogging {
     case _: Injured => Restart
   }
 
-  val persistentPingPong = context.actorOf(PersistentPingPong.props, PersistentPingPong.getClass.getSimpleName)
+  val basicPingPong = context.actorOf(BasicPingPong.props, BasicPingPong.getClass.getSimpleName)
 
   def receive: Receive = {
     case msg @ _  =>
       log.info("forwarding message {} to child.", msg)
-      persistentPingPong forward msg
+      basicPingPong forward msg
   }
 }
 
-object PersistentPingPongSupervisor {
-  def props: Props = Props[PersistentPingPongSupervisor]
+object BasicPingPongSupervisor {
+  def props: Props = Props[BasicPingPongSupervisor]
 }

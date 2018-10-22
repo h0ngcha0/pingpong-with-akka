@@ -22,6 +22,7 @@ class Endpoint()(
   implicit val timeout = Timeout(5.seconds)
 
   val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
+  val basicPingPongSupervisor = system.actorOf(BasicPingPongSupervisor.props, "BasicPingPongSupervisor")
   val persistentPingPongSupervisor = system.actorOf(PersistentPingPongSupervisor.props, "PersistentPingPongSupervisor")
   val pingPongView = system.actorOf(PersistentPingPongView.props, "PersistentPingPongView")
 
@@ -61,6 +62,11 @@ class Endpoint()(
   }
 
 
+  // Supervised Basic Routes
+  val supervisedBasicPingRoutes = pathPrefix("supervised-basic") {
+    pingRoutes(basicPingPongSupervisor)
+  }
+
   // Persistent Routes
   val persistentPingRoutes = pingRoutes(persistentPingPongSupervisor)
   val persistentAllRoutes = allRoutes(persistentPingPongSupervisor)
@@ -70,5 +76,7 @@ class Endpoint()(
 
 
 
-  val routes = basicPingRoutes ~ persistentRoute
+  val routes = basicPingRoutes ~
+    supervisedBasicPingRoutes ~
+    persistentRoute
 }
