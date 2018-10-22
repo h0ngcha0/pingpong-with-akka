@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 
-class PingPong extends PersistentActor {
+class PersistentPingPong extends PersistentActor {
   val log = Logging(context.system, this)
 
   implicit val executionContext = context.dispatcher
@@ -65,6 +65,6 @@ class PingPong extends PersistentActor {
   }
 }
 
-object PingPong {
-  def props: Props = Props[PingPong]
+object PersistentPingPong {
+  def props: Props = Props[PersistentPingPong]
 }

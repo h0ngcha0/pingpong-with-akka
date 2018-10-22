@@ -1,6 +1,6 @@
 package com.example.webservice.pingpong
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
@@ -9,6 +9,7 @@ import akka.util.Timeout
 import com.typesafe.config.Config
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import Protocols._
+
 import scala.concurrent._
 import scala.concurrent.duration._
 
@@ -20,31 +21,32 @@ class Endpoint()(
 ) extends PlayJsonSupport {
   implicit val timeout = Timeout(5.seconds)
 
-  val pingPongActor = system.actorOf(SupervisedPingPong.props, "PingPong")
-  val pingPongView = system.actorOf(PingPongView.props, "PingPongView")
+  val basicPingPong = system.actorOf(BasicPingPong.props, "BasicPingPong")
+  val persistentPingPongSupervisor = system.actorOf(PersistentPingPongSupervisor.props, "PersistentPingPongSupervisor")
+  val pingPongView = system.actorOf(PersistentPingPongView.props, "PersistentPingPongView")
 
-  val pingRoutes = path("ping") {
+  def pingRoutes(actor: ActorRef) = path("ping") {
     (post & entity(as[Ball])) { ball =>
       complete {
-        (pingPongActor ? ball).mapTo[Payload]
+        (actor ? ball).mapTo[Payload]
       }
     } ~
-    get {
-      complete {
-        (pingPongActor ? BallsSeen).mapTo[Payload]
+      get {
+        complete {
+          (actor ? BallsSeen).mapTo[Payload]
+        }
       }
-    }
   }
 
-  val allRoutes = path("all" / "ping") {
+  def allRoutes(actor: ActorRef) = path("all" / "ping") {
     (post & entity(as[Ball])) { ball =>
       complete {
-        (pingPongActor ? ToAll(ball)).mapTo[List[Payload]]
+        (actor ? ToAll(ball)).mapTo[List[Payload]]
       }
     } ~
-    get {
-      complete { (pingPongActor ? ToAll(BallsSeen)).mapTo[List[Payload]] }
-    }
+      get {
+        complete { (actor ? ToAll(BallsSeen)).mapTo[List[Payload]] }
+      }
   }
 
   val statsRoutes = path("stats") {
@@ -53,5 +55,20 @@ class Endpoint()(
     }
   }
 
-  val routes = pingRoutes ~ allRoutes ~ statsRoutes
+  // Basic Routes
+  val basicPingRoutes = pathPrefix("basic") {
+    pingRoutes(basicPingPong)
+  }
+
+
+  // Persistent Routes
+  val persistentPingRoutes = pingRoutes(persistentPingPongSupervisor)
+  val persistentAllRoutes = allRoutes(persistentPingPongSupervisor)
+  val persistentRoute = pathPrefix("persistent") {
+    persistentPingRoutes ~ persistentAllRoutes ~ statsRoutes
+  }
+
+
+
+  val routes = basicPingRoutes ~ persistentRoute
 }

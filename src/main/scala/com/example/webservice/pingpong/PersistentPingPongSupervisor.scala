@@ -4,7 +4,7 @@ import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
 import akka.actor.SupervisorStrategy._
 import akka.event.Logging
 
-class SupervisedPingPong extends Actor with ActorLogging {
+class PersistentPingPongSupervisor extends Actor with ActorLogging {
 
   override val supervisorStrategy = OneForOneStrategy() {
     case _: Killed  => Stop
@@ -12,7 +12,7 @@ class SupervisedPingPong extends Actor with ActorLogging {
     case _: Injured => Restart
   }
 
-  val basicPingPong = context.actorOf(PingPong.props, "PingPong")
+  val basicPingPong = context.actorOf(PersistentPingPong.props, "PingPong")
 
   def receive = {
     case msg @ _  =>
@@ -21,6 +21,6 @@ class SupervisedPingPong extends Actor with ActorLogging {
   }
 }
 
-object SupervisedPingPong {
-  def props: Props = Props[SupervisedPingPong]
+object PersistentPingPongSupervisor {
+  def props: Props = Props[PersistentPingPongSupervisor]
 }

@@ -9,7 +9,7 @@ import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
 import akka.stream.scaladsl.Source
 
 
-class PingPongView extends Actor with ActorLogging {
+class PersistentPingPongView extends Actor with ActorLogging {
   private var pingpongBallSeen = 0
   private var basketBallSeen   = 0
   private var fireBallSeen     = 0
@@ -22,7 +22,10 @@ class PingPongView extends Actor with ActorLogging {
   val eventSource: Source[EventEnvelope, NotUsed] = queries.eventsByPersistenceId(persistenceId)
 
   // We can run a reducer and store in some kind of database
-  eventSource.map { self ! _.event }
+  eventSource.map { eventEnvelop =>
+    log.info(s"PersistentPingPongView recieved event: ${eventEnvelop.event}")
+    self ! eventEnvelop.event
+  }
 
   def buildBallStats: Receive = {
     case PingPongball => pingpongBallSeen = pingpongBallSeen + 1
@@ -38,6 +41,6 @@ class PingPongView extends Actor with ActorLogging {
   }
 }
 
-object PingPongView {
-  def props: Props = Props[PingPongView]
+object PersistentPingPongView {
+  def props: Props = Props[PersistentPingPongView]
 }
