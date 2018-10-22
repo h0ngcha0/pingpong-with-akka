@@ -45,7 +45,7 @@ class PingPong extends PersistentActor {
   }
 
   override def receiveRecover: Receive = {
-    case ball: Ball => ballsSeen = ballsSeen + 1
+    case _: Ball => ballsSeen = ballsSeen + 1
   }
 
   private def sendToAll(msg: Payload): Future[List[Payload]] = {

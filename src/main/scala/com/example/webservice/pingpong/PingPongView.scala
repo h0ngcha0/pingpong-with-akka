@@ -1,18 +1,28 @@
 package com.example.webservice.pingpong
 
-import akka.actor.{ ActorLogging, Props }
-import akka.persistence.PersistentView
+import akka.actor.{Actor, ActorLogging, Props}
 import java.net.InetAddress
 
+import akka.NotUsed
+import akka.persistence.query.{EventEnvelope, PersistenceQuery}
+import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
+import akka.stream.scaladsl.Source
 
-class PingPongView extends PersistentView with ActorLogging {
-  var pingpongBallSeen = 0
-  var basketBallSeen   = 0
-  var fireBallSeen     = 0
-  var bulletSeen       = 0
 
-  override def persistenceId: String = InetAddress.getLocalHost.getHostName
-  override def viewId: String = s"$persistenceId-view"
+class PingPongView extends Actor with ActorLogging {
+  private var pingpongBallSeen = 0
+  private var basketBallSeen   = 0
+  private var fireBallSeen     = 0
+  private var bulletSeen       = 0
+
+  private val persistenceId: String = InetAddress.getLocalHost.getHostName
+
+  val queries = PersistenceQuery(context.system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
+
+  val eventSource: Source[EventEnvelope, NotUsed] = queries.eventsByPersistenceId(persistenceId)
+
+  // We can run a reducer and store in some kind of database
+  eventSource.map { self ! _.event }
 
   def buildBallStats: Receive = {
     case PingPongball => pingpongBallSeen = pingpongBallSeen + 1
